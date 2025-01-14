@@ -1,0 +1,121 @@
+{% extends "booking/base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<header>
+    <nav class="navbar">
+        <div class="navbar-left">
+            {% if user.is_authenticated %}
+                <span class="username">{{ user.username }}</span>
+            {% endif %}
+        </div>
+        <div class="navbar-center">
+            <span>My Dashboard</span>
+        </div>
+        <div class="navbar-right">
+            {% if user.is_authenticated %}
+                <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
+            {% else %}
+                <a href="{% url 'login' %}" class="btn-login">Login</a>
+            {% endif %}
+        </div>
+    </nav>
+</header>
+
+<div class="dashboard">
+    <div class="search">
+        <h3 class="search-heading">Search for Doctors</h3>
+        <form id="doctor-search-form" method="get">
+            <input class="search-bar" type="text" name="q" placeholder="Search doctors by name or specialization..." required>
+            <button type="submit" class="btn-primary">Search</button>
+        </form>
+
+        <div id="no-results-message" style="display: none;">
+            <p style="color:red">No doctors found.</p>
+        </div>
+
+        <table id="search-results" class="doctor-table" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Specialization</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for doctor in search_results %}
+                    <tr>
+                        <td>Dr.salam {{ doctor.name }}</td>
+                        <td>{{ doctor.specialization }}</td>
+                        <td><a href="{% url 'doctor_details' doctor.id %}" class="btn-primary">View Schedule</a></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+<div class="appointments">
+    <h3 class="appointments-heading">My Appointments</h3>
+
+    {% if appointments %}
+        <table id="appointment-list" class="doctor-table">
+            <thead>
+                <tr>
+                    <th>Doctor Name</th>
+                    <th>Appointment Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appointment in appointments %}
+                    <tr>
+                        <td>Dr. {{ appointment.doctor.name }}</td>
+                        <td>{{ appointment.date_time }}</td>
+                        <td>{{ appointment.status }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p style="color:red">No Appointments found.</p>
+    {% endif %}
+</div>
+
+</div>
+
+<script>
+    document.getElementById('doctor-search-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const query = document.querySelector('input[name="q"]').value;
+
+        document.getElementById('search-results').style.display = 'none';
+        document.getElementById('no-results-message').style.display = 'none';
+
+        fetch(`/api/doctors/search/?q=${query}`, {
+            method: 'GET',
+        })
+        .then(response => response.json())
+        .then(data => {
+            const resultsTable = document.getElementById('search-results').getElementsByTagName('tbody')[0];
+            resultsTable.innerHTML = '';
+
+            if (data.length > 0) {
+                document.getElementById('search-results').style.display = 'table';
+                data.forEach(doctor => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>Dr. ${doctor.name}</td>
+                        <td>${doctor.specialization}</td>
+                        <td><a href="/doctor/${doctor.id}/" class="btn-primary">View Schedule</a></td>
+                    `;
+                    resultsTable.appendChild(row);
+                });
+            } else {
+                document.getElementById('no-results-message').style.display = 'block';
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends "booking/base.html" %}
+{% block title %}Doctor Details{% endblock %}
+
+{% block content %}
+<div class="doctor-details">
+    <!-- Back to Dashboard Button -->
+    <a href="{% url 'dashboard' %}" class="btn-back">
+        <span>&#8592;</span> Back to Dashboard
+    </a>
+
+    <h2>Dr. {{ doctor.name }}</h2>
+    <p>Specialization: {{ doctor.get_specialization_display }}</p>
+
+    <h3>Available Slots (from 16:00 to 22:00)</h3>
+
+    <!-- Table with Days and Slots, no time columns -->
+    <table class="slot-table">
+        <tbody>
+            {% for row in slot_table %}
+                <tr>
+                    <td>{{ row.day }}</td>
+                    {% for slot in row.slots %}
+                        <td>
+                            <button
+                                class="slot-btn
+                                    {% if slot.is_reserved_by_user %} reserved-by-user
+                                    {% elif slot.is_reserved %} reserved
+                                    {% else %} available {% endif %}"
+                                onclick="selectSlot('{{ row.day }}', '{{ slot.time }}', this)"
+                                {% if slot.is_reserved %} disabled {% endif %}
+                            >
+                                {% if slot.is_reserved_by_user %} Reserved {% elif slot.is_reserved %} Taken {% else %} {{ slot.time }} {% endif %}
+                            </button>
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <form id="appointment-form" method="POST">
+        {% csrf_token %}
+        <input type="hidden" id="selected_time" name="selected_time">
+        <button type="submit" class="btn btn-primary">Confirm Appointment</button>
+    </form>
+</div>
+
+<script>
+    let selectedButton = null;
+
+    function selectSlot(day, time, button) {
+        if (selectedButton) {
+            selectedButton.classList.remove('selected');
+            selectedButton.style.fontWeight = 'normal';
+        }
+        button.classList.add('selected');
+        button.style.fontWeight = 'bold';
+        selectedButton = button;
+
+        document.getElementById('selected_time').value = `${day} ${time}`;
+    }
+
+    document.getElementById('appointment-form').addEventListener('submit', async function (event) {
+        event.preventDefault();
+
+        if (!selectedButton) {
+            alert("Please select a slot before confirming.");
+            return;
+        }
+
+        const formData = new FormData(this);
+
+        try {
+            const response = await fetch('', {
+                method: 'POST',
+                body: formData,
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                alert(data.message);
+                selectedButton.classList.add('reserved-by-user');
+                selectedButton.disabled = true;
+                selectedButton.textContent = 'Reserved';
+                selectedButton = null;
+            } else {
+                alert(data.message);
+            }
+        } catch (error) {
+            console.error("Error confirming slot:", error);
+            alert("An error occurred. Please try again.");
+        }
+    });
+</script>
+
+{% endblock %}
