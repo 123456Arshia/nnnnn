@@ -1,0 +1,70 @@
+{% extends "booking/base.html" %}
+{% block title %}Doctor Dashboard{% endblock %}
+
+{% block content %}
+<header>
+    <nav class="navbar">
+        <div class="navbar-left">
+            {% if user.is_authenticated %}
+                <span class="username">{{ user.username }}</span>
+            {% endif %}
+        </div>
+        <div class="navbar-center">
+            <span>Doctor Dashboard</span>
+        </div>
+        <div class="navbar-right">
+            {% if user.is_authenticated %}
+                <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
+            {% else %}
+                <a href="{% url 'login' %}" class="btn-login">Login</a>
+            {% endif %}
+        </div>
+    </nav>
+</header>
+
+<div class="doctor-dashboard">
+    <h2>Welcome, Dr. {{ doctor.name }}!</h2>
+
+    <section class="appointments-section">
+        <h3>My Appointments</h3>
+        {% if appointments %}
+            <table class="doctor-table">
+                <thead>
+                    <tr>
+                        <th>Patient</th>
+                        <th>Date/Time</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appointment in appointments %}
+                        <tr>
+                            <td>{{ appointment.patient.user.username }}</td>
+                            <td>{{ appointment.date_time }}</td>
+                            <td>{{ appointment.status }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No appointments found.</p>
+        {% endif %}
+    </section>
+
+    <section class="notifications-section">
+        <h3>Notifications</h3>
+        {% if notifications %}
+            <ul class="notifications-list">
+                {% for notification in notifications %}
+                    <li>
+                        <strong>{{ notification.date_time|date:"M d, Y H:i" }}</strong>
+                        - {{ notification.message }}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No notifications.</p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "booking/base.html" %}
+{% block title %}Doctor Registration{% endblock %}
+
+{% block content %}
+<div class="login-form">
+    <h2>Register as Doctor</h2>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}error-message{% elif message.tags == 'success' %}success-message{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn-primary">Register</button>
+    </form>
+    <p class="register-link">Already have an account? <a href="{% url 'doctor_login' %}">Login here</a></p>
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "booking/base.html" %}
+{% block title %}Add Note{% endblock %}
+
+{% block content %}
+<div class="login-form">
+    <h2>Add Note for {{ appointment.patient.user.get_full_name }}</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <textarea name="note" rows="5" placeholder="Enter your note here..." required>{{ appointment.note }}</textarea>
+        </div>
+        <button type="submit" class="btn-primary">Save Note</button>
+    </form>
+    <a href="{% url 'doctor_dashboard' %}" class="btn-back">Back to Dashboard</a>
+</div>
+{% endblock %}
